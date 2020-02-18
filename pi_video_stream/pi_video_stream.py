@@ -2,21 +2,18 @@ import sys
 sys.path.append('..')
 from picamera.array import PiRGBArray
 from picamera import PiCamera
+import imutils
 from imutils.video import FPS
 import numpy as np
 import cv2
-import imutils
 import time
 from datetime import datetime
 from threading import *
-from gpiozero import LED
 import wiringpi as wpi
-import cvui
 import os
 import tables
 from configparser import ConfigParser
 import csv
-import ClosedLoopHelper as clh
 
 config 		= ConfigParser()
 config.read('config.ini')
