@@ -2,10 +2,10 @@ import sys
 sys.path.append('..')
 from picamera.array import PiRGBArray
 from picamera import PiCamera
-import imutils
-from imutils.video import FPS
 import numpy as np
 import cv2
+import imutils
+from imutils.vidoe import FPS
 import time
 from datetime import datetime
 from threading import *
@@ -17,7 +17,7 @@ import csv
 
 config 		= ConfigParser()
 config.read('config.ini')
-cfg = 'raspicamopencvmog'
+cfg = 'tracker_cage_record'
 data_root 	= config.get(cfg, 'data_root')
 image_stream_filename = config.get(cfg, 'raw_image_file')
 res 	= list(map(int, config.get(cfg, 'resolution').split(', ')))
@@ -42,6 +42,8 @@ rawCapture = PiRGBArray(camera, size=res)
 # allow the camera to warmup
 time.sleep(0.1)
 
+runSession = True
+runRecording = True
 mouse_id = input("Please enter mouse ID: ")
 
 vstream = camera.capture_continuous(rawCapture, format="bgr", use_video_port=True)
@@ -70,7 +72,7 @@ while runSession:
         print("Start recording\n\n")
 
     fps = FPS().start()
-    t_end = time.time() + 60 * sessionDuration
+    t_end = time.time() + record_time_sec
     for img in vstream:
         start = time.time()
         image = img.array
