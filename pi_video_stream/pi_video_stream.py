@@ -8,15 +8,14 @@ import imutils
 from imutils.video import FPS
 import time
 from datetime import datetime
-from threading import *
+from configparser import ConfigParser
 import wiringpi as wpi
 import os
 import tables
-from configparser import ConfigParser
 import csv
 
-class pi_video_stream:
-    def init(self):
+class pi_video_stream():
+    def __init__(self):
         # Read config file
         config = ConfigParser()
         config.read('config.ini')
@@ -41,7 +40,7 @@ class pi_video_stream:
         self.camera.sensor_mode = sensormode
         self.rawCapture = PiRGBArray(self.camera, size=res)
         
-        self.open_log_file('test')
+        self.save_hdf5 = False
         # allow the camera to warmup
         time.sleep(0.1)
 
@@ -52,63 +51,53 @@ class pi_video_stream:
         self.camera.close()
         self.fps.stop()
         self.image_hdf5_file.close()
-        self.logFile.close()
         print("[INFO] elasped time: {:.2f}".format(self.fps.elapsed()))
         print("[INFO] approx. FPS: {:.2f}".format(self.fps.fps()))
-
-
-    def open_log_file(self, filename):
-        logFileName = self.data_root + os.sep + "RFID_data_" + str(filename) + ".txt" 
-        self.logFile = open(logFileName, 'w', encoding="utf-8")
-        self.logFile.write('frame' + '\t' + 'time' + '\t\t\t\t' + 'RFID pick up' +  '\t' +  "\n")
         
         
-    def record(self):
+    def record_prep(self):
         mouse_id = input("Please enter mouse ID: ")
         
-        print("Start preview\n\n")
-        self.vstream = self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True)
-        self.camera.start_preview()
-        
-        # Get the current time and initialize the project folder
-        tm = datetime.now()
+        #Making directory
         data_root_full = self.data_root + str(tm.year) + format(tm.month, '02d') + format(tm.day, '02d') + \
                            format(tm.hour, '02d') + format(tm.minute, '02d') + format(tm.second, '02d')
         if not os.path.exists(data_root_full):
                 print("Creating data directory: ",data_root_full)
                 os.makedirs(data_root_full)
-        
-        image_hdf5_path = self.data_root + os.sep + self.image_stream_filename      
-        self.image_hdf5_file = tables.open_file(image_hdf5_path, mode='w')
-        data_storage = self.image_hdf5_file.create_earray(self.image_hdf5_file.root, 'raw_images',
-                                      tables.Atom.from_dtype(np.dtype('uint8')),
-                                      shape=(0, self.camera.resolution[0], self.camera.resolution[1], 3))
 
-        print("Start recording\n\n")
-
+        #Deprecated, was using hdf5 but it took too much memory
+        if self.save_hdf5:
+            image_hdf5_path = self.data_root + os.sep + self.image_stream_filename      
+            self.image_hdf5_file = tables.open_file(image_hdf5_path, mode='w')
+            self.data_storage = self.image_hdf5_file.create_earray(self.image_hdf5_file.root, 'raw_images',
+                                                                  tables.Atom.from_dtype(np.dtype('uint8')),
+                                                                  shape=(0, self.camera.resolution[0], self.camera.resolution[1], 3))
+                
+        #Starting camera and preview
+        print("Start preview\n\n")
+        self.vstream = self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True)
+        self.camera.start_preview()
         self.fps = FPS().start()
-        t_end = time.time() + self.record_time_sec
+        print("Start recording\n\n")
+        
+        
+    '''
+    Run in a loop
+    '''
+    def record(self):
         for img in self.vstream:
-            start = time.time()
             image = img.array
+            # update the fps count
             self.fps.update()
-            print("analog gain: ", eval(str(self.camera.analog_gain)))
-            print("digital gain: ", eval(str(self.camera.digital_gain))) 
-
-            data_storage.append(image[None])
-            sttime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-            self.logFile.write(str(self.fps._numFrames) + '\t' + sttime + '\t' + str(1) + "\n")
             
+            #print("analog gain: ", eval(str(self.camera.analog_gain)))
+            #print("digital gain: ", eval(str(self.camera.digital_gain)))
+            
+            if self.save_hdf5:
+                self.data_storage.append(image[None])
+                
             # Flush Picamera ready for next frame
             self.rawCapture.seek(0)
-            
-            # Check for timeout
-            if time.time() >= t_end:
-                break
-
-if __name__=="__main__":
-    pd = pi_video_stream()
-    pd.init()
-    pd.record()
-    pd.setdown()
+            return self.fps.__numFrames
+        
 

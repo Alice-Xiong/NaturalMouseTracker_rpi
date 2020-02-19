@@ -4,45 +4,25 @@ import os
 import sys
 import time
 import signal
-import RPi.GPIO as GPIO
-import datetime
-from random import shuffle
-import argparse
-from RFIDTagReader.RFIDTagReader import TagReader
-from shutil import copyfile
+from datetime import datetime
+from RFID_reader.RFIDTagReader.RFIDTagReader import TagReader
 
-#Reader stuff
-##readerMap = [
-##    (103, 170), (177, 160), (274, 145), (390, 140), (475, 138), (542, 145), #1-(1-6) [y-x]
-##    (105, 253), (183, 250), (278, 248), (393, 237), (487, 235), (550, 230), #2-(1-6) [y-x]
-##    (118, 330), (190, 336), (288, 332), (401, 326), (496, 320), (556, 305)  #3-(1-5) [y-x]
-##]
-#readerMap = [(100, 100),(550, 350), (100, 350), (550, 100)]
-#Hex I2C Addresses of all ProTrinkets
 '''
-ProT [0] = 0x11
-ProT [1] = 0x12
-ProT [2] = 0x13
-ProT [3] = 0x14
-ProT [4] = 0x15
-ProT [5] = 0x16
-ProT [6] = 0x31
-ProT [7] = 0x32
-ProT [8] = 0x33
-ProT [9] = 0x34
-ProT [10] = 0x35
-ProT [11] = 0x36
-ProT [12] = 0x51
+RFID reader module used for USB based RFID readers
 '''
 
 
-class RFID_scanner():
+class RFID_reader():
     
-    def __init__(self, pin):
+    '''
+    Makes a TagReader object
+    '''
+    def __init__(self, pin, ID):
         self.seenTags = []
         RFID_kind = 'ID'
         RFID_doCheckSum = True
         self.reader = TagReader (pin, RFID_doCheckSum, timeOutSecs = None, kind=RFID_kind)
+        self.ID = ID
     
     """
     Gets the last full tag in the ProTrinket serial buffer.
@@ -69,14 +49,14 @@ class RFID_scanner():
     
     """
     Scans all readers based on their position in the map.
-    If any mice detected, save their tag and position with the frame number.
+    If any mice detected, save and return their tag
     """
-    def scan(self, readerNum, f = True):
+    def scan(self,f = True):
         try:
             print("startedWait")
             Data = self.reader.readTag()
             if f is not False and Data > 0:
-                print("got data on reader "+ str(readerNum))
+                print("got data on reader "+ str(self.ID))
                 print("added tag " + str(Data))
                 #self.pickup = 1
                 #self.tag_read = 
@@ -84,15 +64,31 @@ class RFID_scanner():
         except Exception as e:
             print(str(e))
         finally:
-            return
+            return Data
+     
+    '''
+    Return a string to identify the RFID reader
+    '''
+    def get_id(self):
+         return self.ID
 
-
-
-while True:
-    reader0 = RFID_scanner('/dev/ttyUSB0')
-    reader0.scan('0')
-    # Check for timeout
+'''
+Testing code
+'''
+def hardwareTest():
+    #Testing code
+    print("running RFID scanner for 10 seconds")
     t_end = time.time() + 10
-    if time.time() >= t_end:
-        break
+    reader0 = RFID_reader('/dev/ttyUSB0', 'A')
+    while True:
+        reader0.scan()
+        # Check for timeout
+        if time.time() >= t_end:
+            break
+
+
+
+if __name__=="__main__":
+    hardwareTest()
+    
 
