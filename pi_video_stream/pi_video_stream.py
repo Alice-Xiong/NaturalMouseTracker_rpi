@@ -5,7 +5,7 @@ from picamera import PiCamera
 import numpy as np
 import cv2
 import imutils
-from imutils.vidoe import FPS
+from imutils.video import FPS
 import time
 from datetime import datetime
 from threading import *
@@ -68,7 +68,7 @@ while runSession:
                                       shape=(0, res[0], res[1], 3))
         logFileName = data_root + os.sep + "VideoTimestamp.txt"
         logFile = open(logFileName, 'w', encoding="utf-8")
-        logFile.write('frame' + '\t' + 'time' + '\t' + 'activity' + '\t' + 'freq' + "\n")
+        logFile.write('frame' + '\t' + 'time' + '\t\t\t\t' + 'RFID pick up' +  '\t' +  "\n")
         print("Start recording\n\n")
 
     fps = FPS().start()
@@ -82,7 +82,7 @@ while runSession:
 
         data_storage.append(image[None])
         sttime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-        logFile.write(str(fps._numFrames) + '\t' + sttime + '\t\t\t' + str(1) + "\n")
+        logFile.write(str(fps._numFrames) + '\t' + sttime + '\t' + str(1) + "\n")
         
         # Flush Picamera ready for next frame
         rawCapture.seek(0)

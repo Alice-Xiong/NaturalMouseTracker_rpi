@@ -1,5 +1,11 @@
 #$ sudo chmod 765 pi_video_stream_setup.sh
 #$ sudo ./pi_video_stream_setup.sh
+    
+    echo "Changing folder permission to user"
+    _path = $PWD
+    cd "/home/pi"
+    cd "$_path"
+    sudo chown pi $_path -R
 
     echo "Installing python packages"
     pip3 install numpy
@@ -11,3 +17,5 @@
 
     echo "Install complete\n Make sure you manually ENABLE CAMERA PORT."
     exit
+
+
