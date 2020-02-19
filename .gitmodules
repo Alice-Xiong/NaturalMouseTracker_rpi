@@ -1,0 +1,3 @@
+[submodule "RFIDTagReader"]
+	path = RFIDTagReader
+	url = https://github.com/jamieboyd/RFIDTagReader.git
