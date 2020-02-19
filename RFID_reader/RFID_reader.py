@@ -18,7 +18,6 @@ from shutil import copyfile
 ##    (118, 330), (190, 336), (288, 332), (401, 326), (496, 320), (556, 305)  #3-(1-5) [y-x]
 ##]
 #readerMap = [(100, 100),(550, 350), (100, 350), (550, 100)]
-seenTags = []
 #Hex I2C Addresses of all ProTrinkets
 '''
 ProT [0] = 0x11
@@ -40,9 +39,10 @@ ProT [12] = 0x51
 class RFID_scanner():
     
     def __init__(self, pin):
+        self.seenTags = []
         RFID_kind = 'ID'
         RFID_doCheckSum = True
-        self.reader = TagReader (RFID_doCheckSum, timeOutSecs = None, kind=RFID_kind)
+        self.reader = TagReader (pin, RFID_doCheckSum, timeOutSecs = None, kind=RFID_kind)
     
     """
     Gets the last full tag in the ProTrinket serial buffer.
@@ -71,28 +71,16 @@ class RFID_scanner():
     Scans all readers based on their position in the map.
     If any mice detected, save their tag and position with the frame number.
     """
-    frameCount = 0
-
-    def scan(self, reader, f, readerNum):
-        global frameCount, startTime
-        mice = []
+    def scan(self, readerNum, f = True):
         try:
             print("startedWait")
-            Data = reader.readTag()
+            Data = self.reader.readTag()
             if f is not False and Data > 0:
-                print("got data")
-                if Data not in seenTags:
-                    seenTags.append(Data)
-                print("added tag")
-                try:
-                    f.camera.annotate_text = str(seenTags.index(Data)) + str(readerNum)
-                except PiCameraValueError as e:
-                    print(str(e))
-                print("modded text")
-                f.camera.annotate_text_size = 16
+                print("got data on reader "+ str(readerNum))
+                print("added tag " + str(Data))
+                #self.pickup = 1
+                #self.tag_read = 
                 time.sleep(0.1)
-                f.camera.annotate_text = ""
-                print("pickup")
         except Exception as e:
             print(str(e))
         finally:
@@ -102,7 +90,7 @@ class RFID_scanner():
 
 while True:
     reader0 = RFID_scanner('/dev/ttyUSB0')
-    reader0.scan()
+    reader0.scan('0')
     # Check for timeout
     t_end = time.time() + 10
     if time.time() >= t_end:
