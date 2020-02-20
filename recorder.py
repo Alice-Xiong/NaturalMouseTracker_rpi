@@ -13,18 +13,25 @@ from threading import Thread
 
 class recorder():
     def __init__(self):
+        # Load configs
         config = ConfigParser()
         config.read('config.ini')
         cfg = 'tracker_cage_record'
-        self.data_root  = config.get(cfg, 'data_root')
+
+        #Making directory
+        self.data_root  = config.get(cfg, 'data_root')        
+        tm = datetime.now()
+        self.data_path = self.data_root + str(tm.year) + "_" + format(tm.month, '02d') + '_' + format(tm.day, '02d') + \
+                           '_' + format(tm.hour, '02d') +':' + format(tm.minute, '02d') + ':' + format(tm.second, '02d')
+        
         self.record_time_sec = config.get(cfg, 'record_time_sec')
 
         # Object for recording
-        self.video = pi_video_stream()
+        self.video = pi_video_stream(self.data_path)
         self.frame_count = 0
 
         # Object for datalogging
-        self.datalogger0 = datalogger('0', self.data_root)
+        self.datalogger0 = datalogger('0', self.data_path)
 
         # Object for RFID reading
         self.reader0 = RFID_reader('/dev/ttyUSB0', '0')
