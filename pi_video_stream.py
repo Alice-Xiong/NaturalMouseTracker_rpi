@@ -57,13 +57,6 @@ class pi_video_stream():
         
     def record_prep(self):
         mouse_id = input("Please enter mouse ID: ")
-        
-        #Making directory
-        data_root_full = self.data_root + str(tm.year) + format(tm.month, '02d') + format(tm.day, '02d') + \
-                           format(tm.hour, '02d') + format(tm.minute, '02d') + format(tm.second, '02d')
-        if not os.path.exists(data_root_full):
-                print("Creating data directory: ",data_root_full)
-                os.makedirs(data_root_full)
 
         #Deprecated, was using hdf5 but it took too much memory
         if self.save_hdf5:
@@ -98,6 +91,6 @@ class pi_video_stream():
                 
             # Flush Picamera ready for next frame
             self.rawCapture.seek(0)
-            return self.fps.__numFrames
+            return self.fps._numFrames
         
 

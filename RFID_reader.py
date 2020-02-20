@@ -5,7 +5,7 @@ import sys
 import time
 import signal
 from datetime import datetime
-from RFID_reader.RFIDTagReader.RFIDTagReader import TagReader
+from RFIDTagReader.RFIDTagReader import TagReader
 
 '''
 RFID reader module used for USB based RFID readers

@@ -5,6 +5,15 @@ from datetime import datetime
 
 class datalogger():
     def __init__(self, file_name, data_root):
+        #Making directory
+        tm = datetime.now()
+        data_root_full = data_root + str(tm.year) + format(tm.month, '02d') + format(tm.day, '02d') + \
+                           format(tm.hour, '02d') + format(tm.minute, '02d') + format(tm.second, '02d')
+        if not os.path.exists(data_root_full):
+                print("Creating data directory: ",data_root_full)
+                os.makedirs(data_root_full)
+        
+        #Creating file
         logFileName = data_root + os.sep + "RFID_data_" + str(file_name) + ".txt" 
         self.logFile = open(logFileName, 'w', encoding="utf-8")
         self.logFile.write('Frame' + '\t' + 'Time' + '\t\t\t\t\t\t' + 'RFID pick up' +  '\t' +  "\n")        

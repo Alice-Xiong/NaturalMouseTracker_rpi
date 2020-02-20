@@ -5,16 +5,24 @@ import wiringpi as wpi
 import os
 import sys
 sys.path.append('..')
-from pi_video_stream.pi_video_stream import pi_video_stream
-from RFID_reader.RFID_reader import RFID_reader
+from pi_video_stream import pi_video_stream
+from RFID_reader import RFID_reader
 from datalogger import datalogger
-
+from configparser import ConfigParser
 
 class recorder():
     def __init__(self):
+        config = ConfigParser()
+        config.read('config.ini')
+        cfg = 'tracker_cage_record'
+        self.data_root  = config.get(cfg, 'data_root')
+
+        # Object for recording
         self.video = pi_video_stream()
         self.frame_count = 0
-        self.datalogger0 = datalogger('0', '/home/pi/rpi_utils')
+
+        # TODO: threads
+        self.datalogger0 = datalogger('0', self.data_root)
         self.reader0 = RFID_reader('/dev/ttyUSB0', '0')
         #self.reader1 = RFID_reader('/dev/ttyUSB1', '1')
         #self.reader2 = RFID_reader('/dev/ttyUSB2', '2')
