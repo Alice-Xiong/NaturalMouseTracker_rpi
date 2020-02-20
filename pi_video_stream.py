@@ -76,23 +76,12 @@ class pi_video_stream():
         
         
     def record(self):
-        t_end = time.time() + 5
-        for img in self.vstream:
-            image = img.array
+        while True:
             # update the fps count
             self.fps.update()
-            
-            #print("analog gain: ", eval(str(self.camera.analog_gain)))
-            #print("digital gain: ", eval(str(self.camera.digital_gain)))
-            
-            if self.save_hdf5:
-                self.data_storage.append(image[None])
-                
+             
             # Flush Picamera ready for next frame
             self.rawCapture.seek(0)
-            print(self.fps._numFrames)
-            if time.time() >= t_end:
-                break
-    
+
         
 

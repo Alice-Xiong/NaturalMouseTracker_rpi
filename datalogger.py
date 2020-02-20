@@ -7,8 +7,8 @@ class datalogger():
     def __init__(self, file_name, data_root):
         #Making directory
         tm = datetime.now()
-        data_root_full = data_root + str(tm.year) + format(tm.month, '02d') + format(tm.day, '02d') + \
-                           format(tm.hour, '02d') + format(tm.minute, '02d') + format(tm.second, '02d')
+        data_root_full = data_root + str(tm.year) + "_" + format(tm.month, '02d') + '_' + format(tm.day, '02d') + \
+                           '_' + format(tm.hour, '02d') +':' + format(tm.minute, '02d') + ':' + format(tm.second, '02d')
         if not os.path.exists(data_root_full):
                 print("Creating data directory: ",data_root_full)
                 os.makedirs(data_root_full)

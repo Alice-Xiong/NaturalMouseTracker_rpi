@@ -18,7 +18,6 @@ class RFID_reader():
     Makes a TagReader object
     '''
     def __init__(self, pin, ID):
-        self.seenTags = []
         RFID_kind = 'ID'
         RFID_doCheckSum = True
         self.reader = TagReader (pin, RFID_doCheckSum, timeOutSecs = None, kind=RFID_kind)
@@ -51,11 +50,11 @@ class RFID_reader():
     Scans all readers based on their position in the map.
     If any mice detected, save and return their tag
     """
-    def scan(self,f = True):
+    def scan(self):
         try:
             print("startedWait")
             Data = self.reader.readTag()
-            if f is not False and Data > 0:
+            if Data > 0:
                 print("got data on reader "+ str(self.ID))
                 print("added tag " + str(Data))
                 #self.pickup = 1
@@ -71,6 +70,9 @@ class RFID_reader():
     '''
     def get_id(self):
          return self.ID
+        
+    
+
 
 '''
 Testing code

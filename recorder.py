@@ -17,13 +17,16 @@ class recorder():
         config.read('config.ini')
         cfg = 'tracker_cage_record'
         self.data_root  = config.get(cfg, 'data_root')
+        self.record_time_sec = config.get(cfg, 'record_time_sec')
 
         # Object for recording
         self.video = pi_video_stream()
         self.frame_count = 0
 
-        # TODO: threads
+        # Object for datalogging
         self.datalogger0 = datalogger('0', self.data_root)
+
+        # Object for RFID reading
         self.reader0 = RFID_reader('/dev/ttyUSB0', '0')
         #self.reader1 = RFID_reader('/dev/ttyUSB1', '1')
         #self.reader2 = RFID_reader('/dev/ttyUSB2', '2')
@@ -31,20 +34,34 @@ class recorder():
                         
         
     def run(self):
-        t_end = time.time() + 5
         self.video.record_prep()
-        threadCam = Thread(target=self.video.record, daemon= True)
+
+        # Make threads for different objects
+        t_camera = Thread(target=self.video.record, daemon=True)
+        t_rfid0 = Thread(target=self.reader0.scan, daemon=True)
+
+        # Start threads
+        t_camera.start()
+        t_rfid0.start()
+
+        # Setting reference time and frame count
+        t_end = time.time() + int(self.record_time_sec)
         self.frame_count = 0
         self.last_frame_count = 0
+
+        # Main loop
         while True:
-            #rfid_pickup0 = self.reader0.scan()
-            self.frame_count = self.video.get_frame_count
-            if self.frame_count != self.last_frame_count:
+            
+            self.frame_count = self.video.get_frame_count()
+            if self.frame_count > self.last_frame_count: 
                 self.datalogger0.write_to_txt(self.frame_count, '1')
                 self.last_frame_count = self.frame_count
             # Check for timeout
             if time.time() >= t_end:
                 break
+
+    def setdown(self):
+        self.pi_video_stream.setdown()
             
 
 
