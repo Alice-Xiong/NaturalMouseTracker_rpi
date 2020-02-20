@@ -9,6 +9,7 @@ from pi_video_stream import pi_video_stream
 from RFID_reader import RFID_reader
 from datalogger import datalogger
 from configparser import ConfigParser
+from threading import Thread
 
 class recorder():
     def __init__(self):
@@ -30,12 +31,17 @@ class recorder():
                         
         
     def run(self):
-        t_end = time.time() + 15
+        t_end = time.time() + 5
         self.video.record_prep()
+        threadCam = Thread(target=self.video.record, daemon= True)
+        self.frame_count = 0
+        self.last_frame_count = 0
         while True:
-            frame_count = self.video.record()
-            rfid_pickup0 = self.reader0.scan()
-            self.datalogger.write_to_log_file(frame_count, rfid_pickup0)
+            #rfid_pickup0 = self.reader0.scan()
+            self.frame_count = self.video.get_frame_count
+            if self.frame_count != self.last_frame_count:
+                self.datalogger0.write_to_txt(self.frame_count, '1')
+                self.last_frame_count = self.frame_count
             # Check for timeout
             if time.time() >= t_end:
                 break

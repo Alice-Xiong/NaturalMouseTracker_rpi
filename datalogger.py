@@ -14,7 +14,7 @@ class datalogger():
                 os.makedirs(data_root_full)
         
         #Creating file
-        logFileName = data_root + os.sep + "RFID_data_" + str(file_name) + ".txt" 
+        logFileName = data_root_full + os.sep + "RFID_data_" + str(file_name) + ".txt" 
         self.logFile = open(logFileName, 'w', encoding="utf-8")
         self.logFile.write('Frame' + '\t' + 'Time' + '\t\t\t\t\t\t' + 'RFID pick up' +  '\t' +  "\n")        
 

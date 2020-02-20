@@ -53,11 +53,12 @@ class pi_video_stream():
         self.image_hdf5_file.close()
         print("[INFO] elasped time: {:.2f}".format(self.fps.elapsed()))
         print("[INFO] approx. FPS: {:.2f}".format(self.fps.fps()))
+
+    def get_frame_count(self):
+        return self.fps._numFrames
         
         
     def record_prep(self):
-        mouse_id = input("Please enter mouse ID: ")
-
         #Deprecated, was using hdf5 but it took too much memory
         if self.save_hdf5:
             image_hdf5_path = self.data_root + os.sep + self.image_stream_filename      
@@ -74,10 +75,8 @@ class pi_video_stream():
         print("Start recording\n\n")
         
         
-    '''
-    Run in a loop
-    '''
     def record(self):
+        t_end = time.time() + 5
         for img in self.vstream:
             image = img.array
             # update the fps count
@@ -91,6 +90,9 @@ class pi_video_stream():
                 
             # Flush Picamera ready for next frame
             self.rawCapture.seek(0)
-            return self.fps._numFrames
+            print(self.fps._numFrames)
+            if time.time() >= t_end:
+                break
+    
         
 
