@@ -71,7 +71,8 @@ class pi_video_stream():
         #save as h264
         self.video_path = self.data_path + os.sep + 'recording' + ".h264"
         self.camera.start_recording(self.video_path)
-        while True:
+        for img in self.vstream:
+            image = img.array
             # update the fps count
             self.fps.update()
             # Flush Picamera ready for next frame

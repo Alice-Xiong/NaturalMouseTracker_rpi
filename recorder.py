@@ -58,10 +58,9 @@ class recorder():
 
         # Main loop
         while True:
-            
             self.frame_count = self.video.get_frame_count()
-            if self.frame_count > self.last_frame_count: 
-                self.datalogger0.write_to_txt(self.frame_count, '1')
+            if self.frame_count != self.last_frame_count: 
+                self.datalogger0.write_to_txt(self.frame_count, self.reader0.data)
                 self.last_frame_count = self.frame_count
             # Check for timeout
             if time.time() >= t_end:

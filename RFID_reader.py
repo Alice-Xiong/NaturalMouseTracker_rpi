@@ -22,6 +22,7 @@ class RFID_reader():
         RFID_doCheckSum = True
         self.reader = TagReader (pin, RFID_doCheckSum, timeOutSecs = None, kind=RFID_kind)
         self.ID = ID
+        self.data = 0
     
     """
     Gets the last full tag in the ProTrinket serial buffer.
@@ -51,19 +52,20 @@ class RFID_reader():
     If any mice detected, save and return their tag
     """
     def scan(self):
-        try:
-            print("startedWait")
-            Data = self.reader.readTag()
-            if Data > 0:
-                print("got data on reader "+ str(self.ID))
-                print("added tag " + str(Data))
-                #self.pickup = 1
-                #self.tag_read = 
-                time.sleep(0.1)
-        except Exception as e:
-            print(str(e))
-        finally:
-            return Data
+        while True:
+            try:
+                print("startedWait")
+                Data = 0
+                Data = self.reader.readTag()
+                if Data > 0:
+                    print("got data on reader "+ str(self.ID))
+                    print("added tag " + str(Data))
+                    # Grace period
+                    time.sleep(0.1)
+            except Exception as e:
+                print(str(e))
+            finally:
+                self.data = Data
      
     '''
     Return a string to identify the RFID reader
@@ -71,23 +73,16 @@ class RFID_reader():
     def get_id(self):
          return self.ID
         
-    
-
 
 '''
 Testing code
 '''
 def hardwareTest():
     #Testing code
-    print("running RFID scanner for 10 seconds")
-    t_end = time.time() + 10
+    print("running RFID scanner, ctrl+C to quit")
     reader0 = RFID_reader('/dev/ttyUSB0', 'A')
-    while True:
-        reader0.scan()
-        # Check for timeout
-        if time.time() >= t_end:
-            break
-
+    reader0.scan()
+    # Check for timeout
 
 
 if __name__=="__main__":
