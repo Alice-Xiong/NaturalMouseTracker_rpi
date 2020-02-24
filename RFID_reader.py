@@ -25,29 +25,6 @@ class RFID_reader():
         self.data = 0
     
     """
-    Gets the last full tag in the ProTrinket serial buffer.
-    Converts this into a readable string.
-    """
-    def readNumber(self, address_1):
-        number1 = []
-        try:
-            #with SMBus(1) as bus:
-            bus = SMBus(1)
-            flag = False
-            for i in range (0, 16):
-                if flag:
-                    number1.append(chr(bus.read_byte(address_1)))
-                else:
-                    x = bus.read_byte(address_1)
-                    if x is 2:
-                        flag = True
-
-        except IOError as e:
-            print (e)
-        return number1,time.time()
-    
-    
-    """
     Scans all readers based on their position in the map.
     If any mice detected, save and return their tag
     """
@@ -55,13 +32,14 @@ class RFID_reader():
         while True:
             try:
                 print("startedWait")
-                Data = 0
-                Data = self.reader.readTag()
-                self.data = Data
-                if Data > 0:
+                self.data = 0
+                self.data = self.reader.readTag()
+                if self.data > 0:
                     print("got data on reader "+ str(self.ID))
-                    print("added tag " + str(Data))
+                    print("added tag " + str(self.data))
                     print(datetime.now())
+                    #Allow this read to be picked up by outside classes
+                    time.sleep(0.1)
             except Exception as e:
                 print(str(e))
 
@@ -77,15 +55,10 @@ class RFID_reader():
 '''
 Testing code
 '''
-def hardwareTest():
+if __name__=="__main__":
     #Testing code
     print("running RFID scanner, ctrl+C to quit")
     reader0 = RFID_reader('/dev/ttyUSB0', 'A')
     reader0.scan()
     # Check for timeout
-
-
-if __name__=="__main__":
-    hardwareTest()
-    
 

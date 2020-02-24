@@ -22,7 +22,10 @@ class datalogger():
         self.logFile.close()
 
 
-def hardwareTest():
+'''
+Testing code
+'''
+if __name__=="__main__":
     dl = datalogger('X', '/home/pi/rpi_utils')
     dl.write_to_txt(1, 1)
     dl.setdown()

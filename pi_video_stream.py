@@ -46,11 +46,8 @@ class pi_video_stream():
         time.sleep(0.1)
 
     def setdown(self):
-        self.camera.stop_preview()
-        self.camera.stop_recording()
-        self.camera.close()
+        self.camera.stop_preview()  
         self.vstream.close()
-        self.rawCapture.close()
         self.fps.stop()
         print("[INFO] elasped time: {:.2f}".format(self.fps.elapsed()))
         print("[INFO] approx. FPS: {:.2f}".format(self.fps.fps()))
@@ -70,12 +67,19 @@ class pi_video_stream():
         
     def record(self):
         # Save as h264
-        self.video_path = self.data_path + os.sep + 'recording' + ".mjpeg"
-        self.camera.start_recording(self.video_path)
+        #self.video_path = self.data_path + os.sep + 'recording' + ".h264"
+        #self.camera.start_recording(self.video_path)
         # Capturing frame by frame
-        for i in enumerate(
-                self.camera.capture_continuous(self.data_path + os.sep +'frame{counter:02d}.jpg', burst = True)):
+        
+        for i, filename in enumerate(
+                self.camera.capture_continuous(self.data_path + os.sep +'frame{counter:02d}.jpg', use_video_port = True)):
             self.fps.update()
+        '''
+        for img in self.vstream:
+            self.fps.update()
+            self.rawCapture.seek(0)
+        '''
+       
 
 
         
