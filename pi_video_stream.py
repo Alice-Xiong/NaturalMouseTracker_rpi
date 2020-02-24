@@ -13,6 +13,7 @@ import wiringpi as wpi
 import os
 import tables
 import csv
+import io
 
 class pi_video_stream():
     def __init__(self, data_path):
@@ -35,7 +36,7 @@ class pi_video_stream():
         self.camera.framerate = fr
         self.camera.awb_mode = 'off'
         self.camera.awb_gains = (1,1)
-        #camera.exposure_mode ='off'
+        # Camera.exposure_mode ='off'
         self.camera.shutter_speed = 30000
         self.camera.iso = iso
         self.camera.sensor_mode = sensormode
@@ -59,7 +60,7 @@ class pi_video_stream():
         
         
     def record_prep(self):
-        #Starting camera and preview
+        # Starting camera and preview
         print("Start preview\n\n")
         self.vstream = self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True)
         self.camera.start_preview(fullscreen=False, window=(0,0,256,256))
@@ -68,15 +69,14 @@ class pi_video_stream():
         
         
     def record(self):
-        #save as h264
-        self.video_path = self.data_path + os.sep + 'recording' + ".h264"
+        # Save as h264
+        self.video_path = self.data_path + os.sep + 'recording' + ".mjpeg"
         self.camera.start_recording(self.video_path)
-        for img in self.vstream:
-            image = img.array
-            # update the fps count
+        # Capturing frame by frame
+        for i in enumerate(
+                self.camera.capture_continuous(self.data_path + os.sep +'frame{counter:02d}.jpg', burst = True)):
             self.fps.update()
-            # Flush Picamera ready for next frame
-            self.rawCapture.seek(0)
+
 
         
 

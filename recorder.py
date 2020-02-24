@@ -1,7 +1,9 @@
-from threading import *
+'''
+To check frame: run
+ffprobe -v quiet -print_format json -show_formate -show_stream "recording.mjpeg" -> "recording.json"
+'''
 import time
 from datetime import datetime
-import wiringpi as wpi
 import os
 import sys
 sys.path.append('..')
@@ -32,12 +34,17 @@ class recorder():
 
         # Object for datalogging
         self.datalogger0 = datalogger('0', self.data_path)
+        self.datalogger1 = datalogger('1', self.data_path)
+        self.datalogger2 = datalogger('2', self.data_path)
+        self.datalogger3 = datalogger('3', self.data_path)
 
         # Object for RFID reading
         self.reader0 = RFID_reader('/dev/ttyUSB0', '0')
-        #self.reader1 = RFID_reader('/dev/ttyUSB1', '1')
-        #self.reader2 = RFID_reader('/dev/ttyUSB2', '2')
-        #self.reader3 = RFID_reader('/dev/ttyUSB3', '3')
+        '''
+        self.reader1 = RFID_reader('/dev/ttyUSB1', '1')
+        self.reader2 = RFID_reader('/dev/ttyUSB2', '2')
+        self.reader3 = RFID_reader('/dev/ttyUSB3', '3')
+        '''
                         
         
     def run(self):
@@ -46,10 +53,20 @@ class recorder():
         # Make threads for different objects
         t_camera = Thread(target=self.video.record, daemon=True)
         t_rfid0 = Thread(target=self.reader0.scan, daemon=True)
+        '''
+        t_rfid1 = Thread(target=self.reader1.scan, daemon=True)
+        t_rfid2 = Thread(target=self.reader2.scan, daemon=True)
+        t_rfid3 = Thread(target=self.reader3.scan, daemon=True)
+        '''
 
         # Start threads
         t_camera.start()
         t_rfid0.start()
+        '''
+        t_rfid1.start()
+        t_rfid2.start()
+        t_rfid3.start()
+        '''
 
         # Setting reference time and frame count
         t_end = time.time() + int(self.record_time_sec)
@@ -58,77 +75,43 @@ class recorder():
 
         # Main loop
         while True:
+            # Ensure threads are all running
+            if not t_rfid0.is_alive():
+                t_rfid0 = threading.Thread(target=self.reader0.scan, daemon= True)
+                t_rfid0.start()
+            '''
+            if not t_rfid1.is_alive():
+                t_rfid1 = threading.Thread(target=self.reader0.scan, daemon= True)
+                t_rfid1.start()
+            if not t_rfid2.is_alive():
+                t_rfid2 = threading.Thread(target=self.reader0.scan, daemon= True)
+                t_rfid2.start()
+            if not t_rfid3.is_alive():
+                t_rfid3 = threading.Thread(target=self.reader0.scan, daemon= True)
+                t_rfid3.start()
+            '''
+
+            # Log frame count and RFID pickup
             self.frame_count = self.video.get_frame_count()
             if self.frame_count != self.last_frame_count: 
                 self.datalogger0.write_to_txt(self.frame_count, self.reader0.data)
+                '''
+                self.datalogger1.write_to_txt(self.frame_count, self.reader1.data)
+                self.datalogger2.write_to_txt(self.frame_count, self.reader2.data)
+                self.datalogger3.write_to_txt(self.frame_count, self.reader3.data)
+                '''
                 self.last_frame_count = self.frame_count
+
             # Check for timeout
             if time.time() >= t_end:
                 break
 
     def setdown(self):
-        self.pi_video_stream.setdown()
+        self.video.setdown()
             
 
 
 rc = recorder()
 rc.run()
+rc.setdown()
 
-'''
-def record():
-    global frameCount, goodEvent, badEvent
-    goodEvent = threading.Event()
-    badEvent = threading.Event()
-
-    #Pi video sttream object    Pi
-    folder = "/mnt/frameData/" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
-    video = folder + "/tracking_system" + trialName + ".h264"
-
-    # os.mkdir(folder)
-    # os.system("sudo rm /home/pi/tmp.txt")
-    # os.system("sudo touch /home/pi/tmp.txt")
-    #Actual stuff starts here
-    # os.system("sudo raspivid -t 0 -w 912 -h 720 -fps 15 -ex off -o " + video + " -pts /home/pi/tmp.txt &")
-    vs = PiVideoStream(trialName=trialName)
-    with open (vs.folder + "/RTS_test.txt" , "w") as f:
-        startTime = time.time()
- #THreading start stuff
-        thread0 = threading.Thread(target=scan, daemon= True, args=(reader0, vs, 0,))
-        thread1 = threading.Thread(target=scan, daemon= True, args=(reader1, vs, 1,))
-        thread2 = threading.Thread(target=scan, daemon= True, args=(reader2, vs, 2,))
-        thread3 = threading.Thread(target=scan, daemon= True, args=(reader3, vs, 3,))
-        thread0.start()
-        thread1.start()
-        thread2.start()
-        thread3.start()
-        vs.start(goodEvent, badEvent)
-        #Override interrupt with stop Handler, all child processes ignore interrupt
-        signal.signal(signal.SIGINT, stopHandler)
-        while True:
-            time.sleep(0.05)
-            if not thread0.is_alive():
-                thread0 = threading.Thread(target=scan, daemon= True, args=(reader0, vs, 0))
-                thread0.start()
-            if not thread1.is_alive():
-                thread1 = threading.Thread(target=scan, daemon= True, args=(reader1, vs, 1))
-                thread1.start()
-            if not thread2.is_alive():
-                thread2 = threading.Thread(target=scan, daemon= True, args=(reader2, vs, 2))
-                thread2.start()
-            if not thread3.is_alive():
-                thread3 = threading.Thread(target=scan, daemon= True, args=(reader3, vs, 3))
-                thread3.start()
-            if goodEvent.isSet():
-                print('caught event')
-#                vs.frames.join()
-                print("done")
-                sys.exit(0)
-               # os.system("sudo kill -s 2 $(pgrep raspivid)")
-                break
-            if badEvent.isSet():
-                print("frame queue full")
-                print("done")
-                sys.exit(1)
-                break
-                
-'''

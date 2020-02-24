@@ -57,15 +57,15 @@ class RFID_reader():
                 print("startedWait")
                 Data = 0
                 Data = self.reader.readTag()
+                self.data = Data
                 if Data > 0:
                     print("got data on reader "+ str(self.ID))
                     print("added tag " + str(Data))
-                    # Grace period
-                    time.sleep(0.1)
+                    print(datetime.now())
             except Exception as e:
                 print(str(e))
-            finally:
-                self.data = Data
+
+                
      
     '''
     Return a string to identify the RFID reader
