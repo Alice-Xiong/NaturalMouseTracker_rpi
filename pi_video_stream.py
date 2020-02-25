@@ -15,7 +15,8 @@ import tables
 import csv
 import io
 
-
+frame_count = 0
+last_frame_count = 0
 
 class pi_video_stream():
     def __init__(self, data_path):
@@ -63,17 +64,30 @@ class pi_video_stream():
         print("Start recording\n\n")
         
         
-    def record(self):
+    def record(self, end_time=None):
         # Capturing frame by frame
         for img in self.vstream:
             # Update frame count
+            global frame_count, last_frame_count
+            last_frame_count = frame_count
             self.fps.update()
+            frame_count = self.fps._numFrames
 
             # Write to video
             self.out.write(img.array)
             self.rawCapture.seek(0)
 
-        
+            if end_time is not None and time.time() > end_time:
+                break
+
+
+if __name__=="__main__":       
+    pc = pi_video_stream('/home/pi/rpi_utils/')
+    pc.record_prep()
+    end_time = time.time() + 10
+    pc.record(end_time)
+    pc.setdown()
+    
             
         
        

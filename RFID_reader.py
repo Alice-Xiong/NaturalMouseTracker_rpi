@@ -6,6 +6,8 @@ import time
 import signal
 from datetime import datetime
 from RFIDTagReader.RFIDTagReader import TagReader
+import pi_video_stream
+from datalogger import datalogger
 
 '''
 RFID reader module used for USB based RFID readers
@@ -15,10 +17,11 @@ class RFID_reader():
     '''
     Makes a TagReader object
     '''
-    def __init__(self, pin, ID):
+    def __init__(self, pin, ID, data_path):
         self.reader = TagReader (pin, doChecksum = True, timeOutSecs = None, kind='ID')
-        self.ID = ID
         self.data = 0
+        self.ID = ID
+        self.datalogger = datalogger(self.ID, data_path)
 
     
     """
@@ -35,10 +38,12 @@ class RFID_reader():
                     print("got data on reader "+ str(self.ID))
                     print("added tag " + str(self.data))
                     print(datetime.now())
+                    self.datalogger.write_to_txt(pi_video_stream.frame_count, self.data)
             except Exception as e:
                 print(str(e))
                 
-        
+    def setdown(self):
+        self.datalogger.setdown()
 
 '''
 Testing code

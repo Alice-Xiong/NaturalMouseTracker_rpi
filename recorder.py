@@ -10,7 +10,6 @@ from configparser import ConfigParser
 from threading import Thread
 import frame_counter as fc
 
-
 class recorder():
     def __init__(self):
         # Load configs
@@ -32,78 +31,42 @@ class recorder():
         self.last_frame_count = 0
 
         # Object for RFID reading
-        self.reader0 = RFID_reader('/dev/ttyUSB0', '0')
-        self.reader1 = RFID_reader('/dev/ttyUSB1', '1')
-        self.reader2 = RFID_reader('/dev/ttyUSB2', '2')
-        self.reader3 = RFID_reader('/dev/ttyUSB3', '3')
-
-        # Object for datalogging
-        self.datalogger0 = datalogger('0', self.data_path)
-        self.datalogger1 = datalogger('1', self.data_path)
-        self.datalogger2 = datalogger('2', self.data_path)
-        self.datalogger3 = datalogger('3', self.data_path)
-                        
-        
+        self.reader0 = RFID_reader('/dev/ttyUSB0', '0', self.data_path)
+        self.reader1 = RFID_reader('/dev/ttyUSB1', '1', self.data_path)
+        self.reader2 = RFID_reader('/dev/ttyUSB2', '2', self.data_path)
+        self.reader3 = RFID_reader('/dev/ttyUSB3', '3', self.data_path)
+    
+    '''
+    Main function that opens threads and runs the camera in main thread
+    In each thread: rfid calls datalogger, data is only recorded when there is a pick up.
+    ''' 
     def run(self):
+        # Setting reference time
         self.video.record_prep()
-
+        self.end_time = time.time() + int(self.record_time_sec)
+        
         # Make threads for different objects
-        t_camera = Thread(target=self.video.record, daemon=True)
+        #t_datalogging = Thread(target=self.datalogging_handler, args={self.end_time}, daemon=True)
         t_rfid0 = Thread(target=self.reader0.scan, daemon=True)
         t_rfid1 = Thread(target=self.reader1.scan, daemon=True)
         t_rfid2 = Thread(target=self.reader2.scan, daemon=True)
         t_rfid3 = Thread(target=self.reader3.scan, daemon=True)
-        
 
         # Start threads
-        t_camera.start()
+        #t_datalogging.start()
         t_rfid0.start()
         t_rfid1.start()
         t_rfid2.start()
         t_rfid3.start()
+        self.video.record(self.end_time)
 
-        # Setting reference time and frame count
-        t_end = time.time() + int(self.record_time_sec)
-
-        # Main loop
-        while True:
-            # Ensure threads are all running
-            if not t_camera.is_alive():
-                t_camera = Thread(target=self.video.record, daemon=True)
-                t_camera.start()
-            if not t_rfid0.is_alive():
-                t_rfid0 = threading.Thread(target=self.reader0.scan, daemon= True)
-                t_rfid0.start()
-            if not t_rfid1.is_alive():
-                t_rfid1 = threading.Thread(target=self.reader1.scan, daemon= True)
-                t_rfid1.start()
-            if not t_rfid2.is_alive():
-                t_rfid2 = threading.Thread(target=self.reader2.scan, daemon= True)
-                t_rfid2.start()
-            if not t_rfid3.is_alive():
-                t_rfid3 = threading.Thread(target=self.reader3.scan, daemon= True)
-                t_rfid3.start()
-
-            self.frame_count = self.video.fps._numFrames
-            if self.frame_count != self.last_frame_count: 
-                self.datalogger0.write_to_txt(self.frame_count, self.reader0.data)
-                self.datalogger1.write_to_txt(self.frame_count, self.reader1.data)
-                self.datalogger2.write_to_txt(self.frame_count, self.reader2.data)
-                self.datalogger3.write_to_txt(self.frame_count, self.reader3.data)
-                self.last_frame_count = self.frame_count
-
-            # Check for timeout
-            if time.time() >= t_end:
-                break
 
     def setdown(self):
         self.video.setdown()
-        self.datalogger0.setdown()
-        self.datalogger1.setdown()
-        self.datalogger2.setdown()
-        self.datalogger3.setdown()
-
-            
+        self.reader0.setdown()
+        self.reader1.setdown()
+        self.reader2.setdown()
+        self.reader3.setdown()
 
 
 rc = recorder()

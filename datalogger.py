@@ -1,8 +1,12 @@
 import sys
 sys.path.append('..')
 import os
+import time
 from datetime import datetime
 
+'''
+Makes and writes to txt file
+'''
 class datalogger():
     def __init__(self, file_name, data_path):        
         if not os.path.exists(data_path):
@@ -27,5 +31,6 @@ Testing code
 '''
 if __name__=="__main__":
     dl = datalogger('X', '/home/pi/rpi_utils')
-    dl.write_to_txt(1, 1)
+    for i in range(200):
+        dl.write_to_txt(i, time.time())
     dl.setdown()
