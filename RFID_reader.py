@@ -10,8 +10,6 @@ from RFIDTagReader.RFIDTagReader import TagReader
 '''
 RFID reader module used for USB based RFID readers
 '''
-
-
 class RFID_reader():
     
     '''
@@ -40,13 +38,6 @@ class RFID_reader():
             except Exception as e:
                 print(str(e))
                 
-                
-     
-    '''
-    Return a string to identify the RFID reader
-    '''
-    def get_id(self):
-         return self.ID
         
 
 '''

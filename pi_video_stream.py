@@ -59,24 +59,18 @@ class pi_video_stream():
         self.vstream = self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True)
         self.camera.start_preview(fullscreen=False, window=(0,0,256,256))
         self.fps = FPS().start()
-        self.out = cv2.VideoWriter(self.data_path + os.sep + 'frame.avi', cv2.VideoWriter_fourcc(*'DIVX'), 20.0, self.camera.resolution)
+        self.out = cv2.VideoWriter(self.data_path + os.sep + 'frame.avi', cv2.VideoWriter_fourcc(*'DIVX'), self.camera.framerate, self.camera.resolution)
         print("Start recording\n\n")
         
         
     def record(self):
         # Capturing frame by frame
-        '''
-        for i, filename in enumerate(
-                self.camera.capture_continuous(self.data_path + os.sep +'frame{counter:02d}.jpg', use_video_port = True)):
-            self.fps.update()
-        '''
         for img in self.vstream:
             # Update frame count
             self.fps.update()
 
             # Write to video
             self.out.write(img.array)
-            #cv2.imwrite(self.data_path + os.sep + 'frame' + str(self.fps._numFrames) +'.jpg' ,img.array)
             self.rawCapture.seek(0)
 
         
