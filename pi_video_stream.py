@@ -73,6 +73,8 @@ class pi_video_stream():
             self.fps.update()
             frame_count = self.fps._numFrames
 
+            # Save individual frames
+            #cv2.imwrite(self.data_path + os.sep + 'frame' + str(frame_count) + '.jpg', img.array)
             # Write to video
             self.out.write(img.array)
             self.rawCapture.seek(0)
