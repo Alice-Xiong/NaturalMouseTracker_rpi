@@ -10,6 +10,7 @@ from configparser import ConfigParser
 from threading import Thread
 import frame_counter as fc
 
+
 class recorder():
     def __init__(self):
         # Load configs
@@ -28,19 +29,19 @@ class recorder():
         # Object for recording
         self.video = pi_video_stream(self.data_path)
         self.frame_count = 0
-
-        # Object for datalogging
-        self.datalogger0 = datalogger('0', self.data_path)
-        self.datalogger1 = datalogger('1', self.data_path)
-        self.datalogger2 = datalogger('2', self.data_path)
-        self.datalogger3 = datalogger('3', self.data_path)
+        self.last_frame_count = 0
 
         # Object for RFID reading
         self.reader0 = RFID_reader('/dev/ttyUSB0', '0')
         self.reader1 = RFID_reader('/dev/ttyUSB1', '1')
         self.reader2 = RFID_reader('/dev/ttyUSB2', '2')
         self.reader3 = RFID_reader('/dev/ttyUSB3', '3')
-    
+
+        # Object for datalogging
+        self.datalogger0 = datalogger('0', self.data_path)
+        self.datalogger1 = datalogger('1', self.data_path)
+        self.datalogger2 = datalogger('2', self.data_path)
+        self.datalogger3 = datalogger('3', self.data_path)
                         
         
     def run(self):
@@ -63,27 +64,27 @@ class recorder():
 
         # Setting reference time and frame count
         t_end = time.time() + int(self.record_time_sec)
-        self.frame_count = 0
-        self.last_frame_count = 0
 
         # Main loop
         while True:
             # Ensure threads are all running
+            if not t_camera.is_alive():
+                t_camera = Thread(target=self.video.record, daemon=True)
+                t_camera.start()
             if not t_rfid0.is_alive():
                 t_rfid0 = threading.Thread(target=self.reader0.scan, daemon= True)
                 t_rfid0.start()
             if not t_rfid1.is_alive():
-                t_rfid1 = threading.Thread(target=self.reader0.scan, daemon= True)
+                t_rfid1 = threading.Thread(target=self.reader1.scan, daemon= True)
                 t_rfid1.start()
             if not t_rfid2.is_alive():
-                t_rfid2 = threading.Thread(target=self.reader0.scan, daemon= True)
+                t_rfid2 = threading.Thread(target=self.reader2.scan, daemon= True)
                 t_rfid2.start()
             if not t_rfid3.is_alive():
-                t_rfid3 = threading.Thread(target=self.reader0.scan, daemon= True)
+                t_rfid3 = threading.Thread(target=self.reader3.scan, daemon= True)
                 t_rfid3.start()
 
-            # Log frame count and RFID pickup
-            self.frame_count = self.video.get_frame_count()
+            self.frame_count = self.video.fps._numFrames
             if self.frame_count != self.last_frame_count: 
                 self.datalogger0.write_to_txt(self.frame_count, self.reader0.data)
                 self.datalogger1.write_to_txt(self.frame_count, self.reader1.data)
@@ -101,6 +102,7 @@ class recorder():
         self.datalogger1.setdown()
         self.datalogger2.setdown()
         self.datalogger3.setdown()
+
             
 
 
