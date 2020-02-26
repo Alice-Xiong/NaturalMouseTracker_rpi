@@ -36,7 +36,7 @@ class rpi_recorder():
 
         # Object and settings for recording
         self.video = pi_video_stream(self.data_path)
-        self.record_time_sec = config.get(cfg, 'record_time_sec')
+        self.record_time_sec = int(config.get(cfg, 'record_time_sec'))
         self.frame_count = 0
         self.last_frame_count = 0
 
