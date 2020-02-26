@@ -1,91 +1,57 @@
-#Imports
 from smbus import SMBus
 import os
 import sys
 import time
 import signal
 from datetime import datetime
+
 from RFIDTagReader.RFIDTagReader import TagReader
-
-'''
-RFID reader module used for USB based RFID readers
-'''
-
+import pi_video_stream
+from datalogger import datalogger
 
 class RFID_reader():
-    
-    '''
-    Makes a TagReader object
-    '''
-    def __init__(self, pin, ID):
-        RFID_kind = 'ID'
-        RFID_doCheckSum = True
-        self.reader = TagReader (pin, RFID_doCheckSum, timeOutSecs = None, kind=RFID_kind)
-        self.ID = ID
+    def __init__(self, pin, ID, data_path=None):
+        """Constructor for a USB RFID reader-based RFID module.
+        
+        :param pin: RFID port number, usually a USB port
+        :type pin: string
+        :param ID: label to the RFID
+        :type ID: string
+        :param data_path: path to store the RFID reading information, defaults to None
+        :type data_path: string
+        """
+        self.reader = TagReader (pin, doChecksum = True, timeOutSecs = None, kind='ID')
         self.data = 0
-    
-    """
-    Gets the last full tag in the ProTrinket serial buffer.
-    Converts this into a readable string.
-    """
-    def readNumber(self, address_1):
-        number1 = []
-        try:
-            #with SMBus(1) as bus:
-            bus = SMBus(1)
-            flag = False
-            for i in range (0, 16):
-                if flag:
-                    number1.append(chr(bus.read_byte(address_1)))
-                else:
-                    x = bus.read_byte(address_1)
-                    if x is 2:
-                        flag = True
+        self.ID = ID
+        if data_path is not None:
+            self.datalogger = datalogger(self.ID, data_path)
 
-        except IOError as e:
-            print (e)
-        return number1,time.time()
-    
-    
-    """
-    Scans all readers based on their position in the map.
-    If any mice detected, save and return their tag
-    """
+
     def scan(self):
+        """Scans the RFID reader and if any mice is detected, log the tag with the :class: 'datalogger' object
+        """
         while True:
             try:
-                print("startedWait")
-                Data = 0
-                Data = self.reader.readTag()
-                if Data > 0:
+                self.data = 0
+                # Caution! This method blocks if no tag is read. 
+                self.data = self.reader.readTag()
+                if self.data > 0:
                     print("got data on reader "+ str(self.ID))
-                    print("added tag " + str(Data))
-                    # Grace period
-                    time.sleep(0.1)
+                    print("added tag " + str(self.data) + " at time " + str(datetime.now()))
+                    self.datalogger.write_to_txt(pi_video_stream.frame_count, self.data)
             except Exception as e:
                 print(str(e))
-            finally:
-                self.data = Data
-     
-    '''
-    Return a string to identify the RFID reader
-    '''
-    def get_id(self):
-         return self.ID
-        
+                
+    def setdown(self):
+        self.datalogger.setdown()
 
 '''
 Testing code
 '''
-def hardwareTest():
+if __name__=="__main__":
     #Testing code
     print("running RFID scanner, ctrl+C to quit")
     reader0 = RFID_reader('/dev/ttyUSB0', 'A')
     reader0.scan()
     # Check for timeout
-
-
-if __name__=="__main__":
-    hardwareTest()
-    
 
