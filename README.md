@@ -1,4 +1,5 @@
-# Raspberry Pi Utilities
+# Natural Mouse Tracker (Raspberry Pi recording modules)
+
 To clone the repository, run this in terminal:
 ```
 git clone --recursive https://github.com/Alice-Xiong/NaturalMouseTracker_rpi
