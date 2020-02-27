@@ -15,10 +15,8 @@ from datalogger import datalogger
 
 class rpi_recorder():
     """:class: 'rpi_recorder' is the top level class of natural mouse tracker. It creates :class: 'RFID_reader' objects
-    which run in separate threads, and also runs camera recording in the main loop. Each RFID reader then logs its
-    data in a text file.
-
-    Note that camera is very slow if placed in a thread. (Benchmark: 20 fps in main loop, 11 fps in a thread)
+    which run in separate threads, and also runs camera recording in the main loop. User config files can be found in 
+    'config.ini'
     """
 
     def __init__(self):
@@ -52,8 +50,9 @@ class rpi_recorder():
         self.reader3 = RFID_reader('/dev/ttyUSB3', '3')
 
     def run(self):
-        """Main function that opens threads and runs the camera in main thread. In each thread,
-         :class:'RFID_reader' calls :class:'datalogger', data is only recorded when there is an RFID pickup.
+        """Main function that opens threads and runs :class: 'pi_video_stream' in main thread. In each thread,
+         :class:'RFID_reader' checks for RFID pickup. The pickup data is then logged to a text file 
+         by :class: 'pi_video_stream'.
         """
         # Make threads for different objects
         t_rfid0 = Thread(target=self.reader0.scan, daemon=True)
@@ -81,17 +80,15 @@ class rpi_recorder():
         """Shuts down the :class:'pi_video_stream' object and :class:'RFID_reader' objects. 
         Note that this method has to execute for the video and txt files to save properly.
         """
-        def keyboardInterruptHandler(signal, frame):
-            exit(0)
-        signal.signal(signal.SIGINT, keyboardInterruptHandler)
-
         self.video.setdown()
+
         # Displays the fps and frame counts on terminal
         fc.get_video_frame_count(rc.data_path)
         fc.get_txt_frame_count(rc.data_path)
 
+        # Post process the video to match FPS if specified by user
         if self.fps_post_process == 'True':
-            self.video.post_process()
+            self.video.post_process(self.pi_video_stream.fps.fps())
             print("Finished post processing at "+str(datetime.now()))
 
 
