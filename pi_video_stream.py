@@ -63,6 +63,7 @@ class pi_video_stream():
         print("[INFO] elasped time: {:.2f}".format(self.fps.elapsed()))
         print("[INFO] approx. FPS: {:.2f}".format(self.fps.fps()))
 
+    def post_process(self):
         # Post processing to match FPS
         self.out = cv2.VideoWriter(self.data_path + os.sep + 'fps_corrected.avi', cv2.VideoWriter_fourcc(*'DIVX'), self.fps.fps(), self.camera.resolution)
         cap = cv2.VideoCapture(self.data_path + os.sep + 'raw.avi')
@@ -90,7 +91,8 @@ class pi_video_stream():
         self.out = cv2.VideoWriter(self.data_path + os.sep + 'raw.avi', cv2.VideoWriter_fourcc(*'DIVX'), self.camera.framerate, self.camera.resolution)
         print("Start recording\n\n")
 
-        end_time = time.time() + duration
+        if duration is not None:
+            end_time = time.time() + duration
 
         # Capturing frame by frame
         for img in self.vstream:

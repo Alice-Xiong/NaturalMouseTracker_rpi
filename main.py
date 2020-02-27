@@ -38,7 +38,12 @@ class rpi_recorder():
 
         # Object and settings for recording
         self.video = pi_video_stream(self.data_path, self)
-        self.record_time_sec = int(config.get(cfg, 'record_time_sec'))
+        self.user_interrupt_only = config.get(cfg, 'user_interrupt_only')
+        if self.user_interrupt_only == "True":
+            self.record_time_sec = None        
+        else:
+            self.record_time_sec = int(config.get(cfg, 'record_time_sec'))
+        self.fps_post_process = config.get(cfg, 'fps_post_process')
 
         # Object for RFID reading
         self.reader0 = RFID_reader('/dev/ttyUSB0', '0')
@@ -62,7 +67,7 @@ class rpi_recorder():
         t_rfid2.start()
         t_rfid3.start()
 
-        # keyboard interrupt handler
+        # keyboard interrupt handler, stops program once ctrl-c is pressed
         def keyboardInterruptHandler(signal, frame):
             self.setdown()
             exit(0)
@@ -76,11 +81,18 @@ class rpi_recorder():
         """Shuts down the :class:'pi_video_stream' object and :class:'RFID_reader' objects. 
         Note that this method has to execute for the video and txt files to save properly.
         """
+        def keyboardInterruptHandler(signal, frame):
+            exit(0)
+        signal.signal(signal.SIGINT, keyboardInterruptHandler)
+
         self.video.setdown()
         # Displays the fps and frame counts on terminal
         fc.get_video_frame_count(rc.data_path)
         fc.get_txt_frame_count(rc.data_path)
-        print("Finished fps processing at "+str(datetime.now()))
+
+        if self.fps_post_process == 'True':
+            self.video.post_process()
+            print("Finished post processing at "+str(datetime.now()))
 
 
 if __name__ == "__main__":

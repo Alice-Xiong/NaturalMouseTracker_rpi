@@ -4,7 +4,7 @@ import cv2
 def get_video_frame_count(folder): 
 # Get count from video
     count=0
-    cap=cv2.VideoCapture(str(folder) + '/fps_corrected.avi')
+    cap=cv2.VideoCapture(str(folder) + '/raw.avi')
     while (cap.isOpened()):
         ret,img=cap.read()
         if ret ==True:
