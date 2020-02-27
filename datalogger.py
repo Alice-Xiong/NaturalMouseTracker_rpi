@@ -4,6 +4,9 @@ import os
 import time
 from datetime import datetime
 
+import pi_video_stream
+
+
 class datalogger():
     """Utility class that writes data to a txt file
     """
@@ -22,18 +25,20 @@ class datalogger():
         #Creating file
         logFileName = data_path + os.sep + "RFID_data_" + str(file_name) + ".txt" 
         self.logFile = open(logFileName, 'w', encoding="utf-8")
-        self.logFile.write('Frame' + '\t' + 'Time' + '\t\t\t\t\t\t' + 'RFID pick up' +  '\t' +  "\n")        
+        self.logFile.write('Frame' + '\t' + 'Time' + '\t\t\t\t\t\t' + 'RFID 0' +  '  \t' +  \
+            'RFID 1' +  '  \t' + 'RFID 2' +  '  \t' + 'RFID 3' +  '  \t' "\n")        
 
-    def write_to_txt(self, numFrames, RFID_pick_up):
+    def write_to_txt(self, frame_count, message):
         """Writes a row to the txt file. This function is for use of RFID reader datalogging.
         
-        :param numFrames: global frame count when RFID pickup occurred
-        :type numFrames: integer
-        :param RFID_pick_up: data read on RFID, i.e. the tag number
-        :type RFID_pick_up: integer
+        :param frame_count: global frame count when RFID pickup occurred
+        :type frame_count: integer
+        :param message: data read on RFID, i.e. the tag number
+        :type message: integer
         """
         sttime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-        self.logFile.write(str(numFrames) + '\t\t' + sttime + '\t' + str(RFID_pick_up) + "\n")
+        self.logFile.write(str(frame_count) + '\t\t' + sttime + '\t' + str(message) + "\n")
+
 
     def setdown(self):
         """Saves and closes the text file

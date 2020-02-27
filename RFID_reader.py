@@ -10,7 +10,7 @@ import pi_video_stream
 from datalogger import datalogger
 
 class RFID_reader():
-    def __init__(self, pin, ID, data_path=None):
+    def __init__(self, pin, ID):
         """Constructor for a USB RFID reader-based RFID module.
         
         :param pin: RFID port number, usually a USB port
@@ -23,8 +23,6 @@ class RFID_reader():
         self.reader = TagReader (pin, doChecksum = True, timeOutSecs = None, kind='ID')
         self.data = 0
         self.ID = ID
-        if data_path is not None:
-            self.datalogger = datalogger(self.ID, data_path)
 
 
     def scan(self):
@@ -38,12 +36,10 @@ class RFID_reader():
                 if self.data > 0:
                     print("got data on reader "+ str(self.ID))
                     print("added tag " + str(self.data) + " at time " + str(datetime.now()))
-                    self.datalogger.write_to_txt(pi_video_stream.frame_count, self.data)
+                    time.sleep(0.05)
             except Exception as e:
                 print(str(e))
                 
-    def setdown(self):
-        self.datalogger.setdown()
 
 '''
 Testing code

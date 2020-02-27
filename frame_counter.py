@@ -4,7 +4,7 @@ import cv2
 def get_video_frame_count(folder): 
 # Get count from video
     count=0
-    cap=cv2.VideoCapture(str(folder) + '/frame.avi')
+    cap=cv2.VideoCapture(str(folder) + '/raw.avi')
     while (cap.isOpened()):
         ret,img=cap.read()
         if ret ==True:
@@ -17,10 +17,10 @@ def get_video_frame_count(folder):
 def get_txt_frame_count(folder): 
     # Get frame count from txt
     count = 0
-    with open(str(folder) + '/RFID_data_0.txt', 'r') as f:
+    with open(str(folder) + '/RFID_data_all.txt', 'r') as f:
         for line in f:
             count+=1
-    print('[INFO] logfile frame count: ' + str(count))
+    print('[INFO] logfile frame count: ' + str(count-1))
 
 
 

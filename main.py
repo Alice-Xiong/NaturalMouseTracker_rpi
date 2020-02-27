@@ -2,6 +2,7 @@ import time
 from datetime import datetime
 import os
 import sys
+import signal
 
 sys.path.append('..')
 from pi_video_stream import pi_video_stream
@@ -9,14 +10,13 @@ from RFID_reader import RFID_reader
 from configparser import ConfigParser
 from threading import Thread
 import frame_counter as fc
+from datalogger import datalogger
 
 
 class rpi_recorder():
     """:class: 'rpi_recorder' is the top level class of natural mouse tracker. It creates :class: 'RFID_reader' objects
-    which run in separate threads, and also runs camera recording in the main loop. Each RFID reader then logs its
-    data in a text file.
-
-    Note that camera is very slow if placed in a thread. (Benchmark: 20 fps in main loop, 11 fps in a thread)
+    which run in separate threads, and also runs camera recording in the main loop. User config files can be found in 
+    'config.ini'
     """
 
     def __init__(self):
@@ -35,20 +35,24 @@ class rpi_recorder():
             '_' + format(tm.hour, '02d') + ':' + format(tm.minute, '02d') + ':' + format(tm.second, '02d')
 
         # Object and settings for recording
-        self.video = pi_video_stream(self.data_path)
-        self.record_time_sec = int(config.get(cfg, 'record_time_sec'))
-        self.frame_count = 0
-        self.last_frame_count = 0
+        self.video = pi_video_stream(self.data_path, self)
+        self.user_interrupt_only = config.get(cfg, 'user_interrupt_only')
+        if self.user_interrupt_only == "True":
+            self.record_time_sec = None        
+        else:
+            self.record_time_sec = int(config.get(cfg, 'record_time_sec'))
+        self.fps_post_process = config.get(cfg, 'fps_post_process')
 
         # Object for RFID reading
-        self.reader0 = RFID_reader('/dev/ttyUSB0', '0', self.data_path)
-        self.reader1 = RFID_reader('/dev/ttyUSB1', '1', self.data_path)
-        self.reader2 = RFID_reader('/dev/ttyUSB2', '2', self.data_path)
-        self.reader3 = RFID_reader('/dev/ttyUSB3', '3', self.data_path)
+        self.reader0 = RFID_reader('/dev/ttyUSB0', '0')
+        self.reader1 = RFID_reader('/dev/ttyUSB1', '1')
+        self.reader2 = RFID_reader('/dev/ttyUSB2', '2')
+        self.reader3 = RFID_reader('/dev/ttyUSB3', '3')
 
     def run(self):
-        """Main function that opens threads and runs the camera in main thread. In each thread,
-         :class:'RFID_reader' calls :class:'datalogger', data is only recorded when there is an RFID pickup.
+        """Main function that opens threads and runs :class: 'pi_video_stream' in main thread. In each thread,
+         :class:'RFID_reader' checks for RFID pickup. The pickup data is then logged to a text file 
+         by :class: 'pi_video_stream'.
         """
         # Make threads for different objects
         t_rfid0 = Thread(target=self.reader0.scan, daemon=True)
@@ -61,24 +65,36 @@ class rpi_recorder():
         t_rfid1.start()
         t_rfid2.start()
         t_rfid3.start()
+
+        # keyboard interrupt handler, stops program once ctrl-c is pressed
+        def keyboardInterruptHandler(signal, frame):
+            self.setdown()
+            exit(0)
+        signal.signal(signal.SIGINT, keyboardInterruptHandler)
+
+        # Start recording
         self.video.record(self.record_time_sec)
+        
 
     def setdown(self):
         """Shuts down the :class:'pi_video_stream' object and :class:'RFID_reader' objects. 
         Note that this method has to execute for the video and txt files to save properly.
         """
         self.video.setdown()
-        self.reader0.setdown()
-        self.reader1.setdown()
-        self.reader2.setdown()
-        self.reader3.setdown()
+
+        # Displays the fps and frame counts on terminal
+        fc.get_video_frame_count(rc.data_path)
+        fc.get_txt_frame_count(rc.data_path)
+
+        # Post process the video to match FPS if specified by user
+        if self.fps_post_process == "True":
+            self.video.post_process(self.video.fps.fps())
+            print("Finished post processing at "+str(datetime.now()))
 
 
 if __name__ == "__main__":
     rc = rpi_recorder()
     rc.run()
+    print("Finished recording at "+str(datetime.now()))
     rc.setdown()
-
-    # Displays the fps and frame counts on terminal
-    fc.get_video_frame_count(rc.data_path)
-    fc.get_txt_frame_count(rc.data_path)
+    
