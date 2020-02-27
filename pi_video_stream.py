@@ -48,7 +48,7 @@ class pi_video_stream():
         self.camera.sensor_mode = int(config.get(cfg, 'sensor_mode'))
         self.rawCapture = PiRGBArray(self.camera, size=self.camera.resolution)
         self.record_time_sec = int(config.get(cfg, 'record_time_sec'))
-        self.capture_frames = bool(config.get(cfg, 'capture_frames'))
+        self.capture_frames = config.get(cfg, 'capture_frames')
 
         # Allow the camera to warmup
         time.sleep(0.1)
@@ -106,7 +106,7 @@ class pi_video_stream():
             self.fps.update()
 
             # Save individual frames
-            if self.capture_frames:
+            if self.capture_frames == "True":
                 cv2.imwrite(self.data_path + os.sep + 'frame' + str(self.fps._numFrames) + '.jpg', img.array)
             # Write to video
             self.out.write(img.array)

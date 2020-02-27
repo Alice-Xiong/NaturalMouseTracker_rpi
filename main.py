@@ -87,8 +87,8 @@ class rpi_recorder():
         fc.get_txt_frame_count(rc.data_path)
 
         # Post process the video to match FPS if specified by user
-        if self.fps_post_process == 'True':
-            self.video.post_process(self.pi_video_stream.fps.fps())
+        if self.fps_post_process == "True":
+            self.video.post_process(self.video.fps.fps())
             print("Finished post processing at "+str(datetime.now()))
 
 
